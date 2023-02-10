@@ -102,6 +102,14 @@
         error.innerHTML = result.errorWords.join(", ");
       }
 
+      recognition.onend = reactiveRecord();
+
+      function reactiveRecord() {
+        if (!stop.disabled) {
+          recognition.start();
+        }
+      }
+
       function listenToText() {
         readText(text.value);
       }
@@ -139,15 +147,15 @@
         let score = 0;
         let errorWords = [];
 
-        referenceWords.forEach((word) => {
-          if (inputWords.includes(word)) {
+        inputWords.forEach((element, index) => {
+          if (
+            referenceWords.includes(element) &&
+            referenceWords[index] === element
+          ) {
             score++;
-          }
-        });
-
-        inputWords.forEach((word) => {
-          if (!referenceWords.includes(word)) {
-            errorWords.push(word);
+          } else {
+            if (element !== undefined && !referenceWords.includes(element))
+              errorWords.push(element);
           }
         });
 
@@ -164,17 +172,18 @@
 
         const referenceWords = referencePhrase.split(" ");
         const inputWords = inputPhrase.split(" ");
+        let inputIndex = 0;
 
-        for (let i = 0; i < referenceWords.length; i++) {
-          const referenceWord = referenceWords[i];
-          const inputWord = inputWords[i] || "";
+        referenceWords.forEach((referenceWord) => {
+          const inputWord = inputWords[inputIndex] || "";
 
           if (referenceWord === inputWord) {
             correction.innerHTML += referenceWord + " ";
+            inputIndex++;
           } else {
             correction.innerHTML += `<span class="incorrect">${referenceWord}</span> `;
           }
-        }
+        });
       }
 
       function stopRecording() {
