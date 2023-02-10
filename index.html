@@ -17,6 +17,24 @@
         color: red;
       }
 
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        text-align: center;
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
       button {
         padding: 10px 20px;
         margin: 10px;
@@ -38,9 +56,16 @@
       }
     </style>
     <div class="container">
-      <h1>Prueba de reconocimiento de voz (INGLÉS)</h1>
+      <h1>Speech recognition test</h1>
+      <div class="container">
+        <label for="inputPhrase">Please write a sentence</label>
+        <input type="text" id="inputPhrase" />
+        <div class="buttons">
+          <button id="save">Save</button>
+        </div>
+      </div>
       <h2>Say the following sentence:</h2>
-      <h3>"lifestyle everyone wants a good lifestyle"</h3>
+      <h3 id="phrase"></h3>
       <div class="buttons">
         <button id="record">Record</button>
         <button id="stop">Stop</button>
@@ -48,12 +73,20 @@
       </div>
       <textarea id="text" cols="30" rows="10" disabled></textarea>
       <h3>Your scores is <span id="percentage">0%</span></h3>
-      <h3>Your errors: <br /><span id="erroWords"></span></h3>
-      <h3 id="correction"></h3>
+      <h3>
+        Words that do not go in the sentence: <br /><span id="erroWords"></span>
+      </h3>
+      <h3>
+        Words that were not pronounced: <br />
+        <span id="correction"></span>
+      </h3>
     </div>
 
     <!--Reconocimiennto de voz-->
     <script>
+      const inputPhrase = document.getElementById("inputPhrase");
+      const phrase = document.getElementById("phrase");
+      const save = document.getElementById("save");
       const record = document.getElementById("record");
       const stop = document.getElementById("stop");
       const listen = document.getElementById("listen");
@@ -65,9 +98,21 @@
       const synth = window.speechSynthesis;
       let voices = [];
 
+      function normalizePhrase(phrase) {
+        return phrase.toLowerCase().replace(/[^a-z ]/g, "");
+      }
+
+      save.addEventListener("click", savePhrase);
+
+      function savePhrase() {
+        phrase.innerHTML = normalizePhrase(inputPhrase.value);
+        inputPhrase.value = "";
+        record.disabled = false;
+      }
+
       stop.disabled = true;
       listen.disabled = true;
-      record.disabled = false;
+      record.disabled = true;
 
       recognition = new webkitSpeechRecognition();
 
@@ -78,7 +123,7 @@
       recognition.onresult = (event) => {
         const latestResult = event.results[event.results.length - 1];
         const [{ transcript: phrase }] = latestResult;
-        text.value += phrase;
+        text.value += normalizePhrase(phrase);
       };
 
       record.addEventListener("click", startRecording);
@@ -129,19 +174,13 @@
         synth.speak(speech);
       }
 
-      const PHRASE = "lifestyle everyone wants a good lifestyle";
-
-      function normalizePhrase(phrase) {
-        return phrase.toLowerCase().replace(/[^a-z ]/g, "");
-      }
-
       function comparePhrases(userPhrase) {
         if (!userPhrase) {
           throw new Error("The input phrase is required.");
         }
 
         const inputPhrase = normalizePhrase(userPhrase);
-        const referenceWords = PHRASE.split(" ");
+        const referenceWords = phrase.innerHTML.split(" ");
         const inputWords = inputPhrase.split(" ");
 
         let score = 0;
@@ -172,14 +211,18 @@
 
         const referenceWords = referencePhrase.split(" ");
         const inputWords = inputPhrase.split(" ");
-        let inputIndex = 0;
 
         referenceWords.forEach((referenceWord) => {
-          const inputWord = inputWords[inputIndex] || "";
-
-          if (referenceWord === inputWord) {
+          let match = false;
+          for (let i = 0; i < inputWords.length; i++) {
+            if (referenceWord === inputWords[i]) {
+              match = true;
+              inputWords[i] = "";
+              break;
+            }
+          }
+          if (match) {
             correction.innerHTML += referenceWord + " ";
-            inputIndex++;
           } else {
             correction.innerHTML += `<span class="incorrect">${referenceWord}</span> `;
           }
@@ -193,7 +236,7 @@
         const span = result.percentMatch;
         percentage.innerHTML = `${span.toFixed(2)} %`;
         error.innerHTML = result.errorWords.join(", ");
-        updateCorrection(text.value, PHRASE);
+        updateCorrection(text.value, phrase.innerHTML);
       }
     </script>
   </body>
