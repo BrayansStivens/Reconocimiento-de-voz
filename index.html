@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./favicon_io/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./favicon_io/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./favicon_io/favicon-16x16.png"
+    />
+    <link rel="manifest" href="./favicon_io/site.webmanifest" />
     <title>Media</title>
   </head>
   <body>
@@ -12,9 +30,18 @@
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
           sans-serif;
+        background-color: #ffffff;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' x2='0' y1='1' y2='0'%3E%3Cstop offset='0' stop-color='%230FF'/%3E%3Cstop offset='1' stop-color='%23CF6'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0' stop-color='%23F00'/%3E%3Cstop offset='1' stop-color='%23FC0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='%23FFF' fill-opacity='0' stroke-miterlimit='10'%3E%3Cg stroke='url(%23a)' stroke-width='2'%3E%3Cpath transform='translate(0 0)' d='M1409 581 1450.35 511 1490 581z'/%3E%3Ccircle stroke-width='4' transform='rotate(0 800 450)' cx='500' cy='100' r='40'/%3E%3Cpath transform='translate(0 0)' d='M400.86 735.5h-83.73c0-23.12 18.74-41.87 41.87-41.87S400.86 712.38 400.86 735.5z'/%3E%3C/g%3E%3Cg stroke='url(%23b)' stroke-width='4'%3E%3Cpath transform='translate(0 0)' d='M149.8 345.2 118.4 389.8 149.8 434.4 181.2 389.8z'/%3E%3Crect stroke-width='8' transform='rotate(0 1089 759)' x='1039' y='709' width='100' height='100'/%3E%3Cpath transform='rotate(0 1400 132)' d='M1426.8 132.4 1405.7 168.8 1363.7 168.8 1342.7 132.4 1363.7 96 1405.7 96z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        background-attachment: fixed;
+        background-size: cover;
       }
       .incorrect {
         color: red;
+        transition: all 0.3s ease-out;
+      }
+      .correct {
+        color: green;
+        transition: all 0.3s ease-out;
       }
 
       h1,
@@ -24,6 +51,9 @@
       h5,
       h6 {
         text-align: center;
+      }
+      label {
+        font-weight: 600;
       }
 
       input[type="text"] {
@@ -42,11 +72,13 @@
         border: 1px solid #ccc;
         border-radius: 5px;
         cursor: pointer;
+        transition: all 0.3s ease-out;
       }
 
       button[disabled="disabled"],
       button:disabled {
         background-color: rgb(299, 299, 299);
+        transition: all 0.3s ease-out;
       }
       .container {
         display: flex;
@@ -58,145 +90,181 @@
     <div class="container">
       <h1>Speech recognition test</h1>
       <div class="container">
-        <label for="inputPhrase">Please write a sentence</label>
-        <input type="text" id="inputPhrase" />
+        <label for="phraseInput">Please write a sentence</label>
+        <input type="text" id="phraseInput" />
         <div class="buttons">
-          <button id="save">Save</button>
+          <button id="saveButton">Save</button>
         </div>
       </div>
       <h2>Say the following sentence:</h2>
-      <h3 id="phrase"></h3>
+      <h3 id="phraseOutput"></h3>
       <div class="buttons">
-        <button id="record">Record</button>
-        <button id="stop">Stop</button>
-        <button id="listen">Listen</button>
+        <button id="recordButton">Record</button>
+        <button id="stopButton">Stop</button>
+        <button id="listenButton">Listen</button>
       </div>
-      <textarea id="text" cols="30" rows="10" disabled></textarea>
-      <h3>Your scores is <span id="percentage">0%</span></h3>
+      <textarea id="textInput" cols="35" rows="10" disabled></textarea>
+      <h3>Your scores is <span id="scoreOutput">0%</span></h3>
       <h3>
-        Words that do not go in the sentence: <br /><span id="erroWords"></span>
+        Words that do not exist in the sentence : <br /><span
+          id="erroWordsOutput"
+        ></span>
       </h3>
+      <h3>Out of place words : <br /><span id="misplacedWords"></span></h3>
       <h3>
-        Words that were not pronounced: <br />
-        <span id="correction"></span>
+        Correctly pronounced words that exist in the sentence : <br />
+        <span id="correctionWordsOutput"></span>
       </h3>
     </div>
 
     <!--Reconocimiennto de voz-->
     <script>
-      const inputPhrase = document.getElementById("inputPhrase");
-      const phrase = document.getElementById("phrase");
-      const save = document.getElementById("save");
-      const record = document.getElementById("record");
-      const stop = document.getElementById("stop");
-      const listen = document.getElementById("listen");
-      const text = document.getElementById("text");
-      const percentage = document.getElementById("percentage");
-      const error = document.getElementById("erroWords");
+      //Elementos HTML
+      //Entradas
+      const phraseInput = document.getElementById("phraseInput");
+      const textInput = document.getElementById("textInput");
 
-      const speech = new SpeechSynthesisUtterance();
-      const synth = window.speechSynthesis;
+      //Salidas
+      const textOutput = document.getElementById("textOutput");
+      const scoreOutput = document.getElementById("scoreOutput");
+      const erroWordsOutput = document.getElementById("erroWordsOutput");
+      const misplacedWords = document.getElementById("misplacedWords");
+      const correctionWordsOutput = document.getElementById(
+        "correctionWordsOutput"
+      );
+
+      //Botones
+      const saveButton = document.getElementById("saveButton");
+      const recordButton = document.getElementById("recordButton");
+      const stopButton = document.getElementById("stopButton");
+      const listenButton = document.getElementById("listenButton");
+
+      //Interfaces
+      const speechSynthesisUtteranc = new SpeechSynthesisUtterance();
+      speechRecognition = new webkitSpeechRecognition();
+      const speechSynthesis = window.speechSynthesis;
+
+      //Arreglos
       let voices = [];
 
-      function normalizePhrase(phrase) {
+      //Propiedades
+      saveButton.disabled = true;
+      recordButton.disabled = true;
+      stopButton.disabled = true;
+      listenButton.disabled = true;
+      speechRecognition.lang = "en";
+      speechRecognition.continuous = true;
+      speechRecognition.interimResults = false;
+      voices = speechSynthesis.getVoices();
+
+      //Fucniones
+      const normalizePhrase = (phrase) => {
         return phrase.toLowerCase().replace(/[^a-z ]/g, "");
-      }
-
-      save.addEventListener("click", savePhrase);
-
-      function savePhrase() {
-        phrase.innerHTML = normalizePhrase(inputPhrase.value);
-        inputPhrase.value = "";
-        record.disabled = false;
-      }
-
-      stop.disabled = true;
-      listen.disabled = true;
-      record.disabled = true;
-
-      recognition = new webkitSpeechRecognition();
-
-      recognition.lang = "en";
-      recognition.continuous = true;
-      recognition.interimResults = false;
-
-      recognition.onresult = (event) => {
-        const latestResult = event.results[event.results.length - 1];
-        const [{ transcript: phrase }] = latestResult;
-        text.value += normalizePhrase(phrase);
       };
 
-      record.addEventListener("click", startRecording);
-      stop.addEventListener("click", stopRecording);
-      listen.addEventListener("click", listenToText);
+      const validatePhrase = (userPhrase) => {
+        if (!userPhrase) {
+          throw new Error("The input phrase is required.");
+        }
+      };
+
+      function enableSaveButton(event) {
+        console.log(event.target.value);
+        if (event.target.value) {
+          saveButton.disabled = false;
+        } else {
+          saveButton.disabled = true;
+        }
+      }
+
+      function savePhrase() {
+        phraseOutput.innerHTML = normalizePhrase(phraseInput.value);
+        phraseInput.value = "";
+        recordButton.disabled = false;
+      }
+
+      function catchPhrase(event) {
+        const latestResult = event.results[event.results.length - 1];
+        const [{ transcript: phrase }] = latestResult;
+        textOutput.value += normalizePhrase(phrase);
+      }
 
       function startRecording() {
-        text.value = "";
-        recognition.start();
-        stop.disabled = false;
-        listen.disabled = true;
-        record.disabled = true;
+        speechRecognition.start();
+        updateUIAfterRecord();
       }
 
       function stopRecording() {
-        recognition.abort();
-        updateUIAfterRecording();
-        result = comparePhrases(text.value);
-        const span = result.percentMatch;
-        percentage.innerHTML = `${span.toFixed(2)} %`;
-        error.innerHTML = result.errorWords.join(", ");
-      }
-
-      recognition.onend = reactiveRecord();
-
-      function reactiveRecord() {
-        if (!stop.disabled) {
-          recognition.start();
-        }
+        speechRecognition.abort();
+        updateUIAfterStop();
+        const result = comparePhrases(textInput.value);
+        const score = result.percentMatch;
+        scoreOutput.innerHTML = `${score.toFixed(1)} %`;
+        erroWordsOutput.innerHTML = result.errorWords;
+        updateCorrection(textInput.value, phraseOutput.innerHTML);
       }
 
       function listenToText() {
         readText(text.value);
       }
 
-      function updateUIAfterRecording() {
-        stop.disabled = true;
-        listen.disabled = false;
-        record.disabled = false;
-        voices = synth.getVoices();
+      function reactiveRecord() {
+        if (!stopButton.disabled) {
+          speechRecognition.start();
+        }
       }
 
       function readText(text) {
-        speech.text = text;
-        speech.voice = voices.find(
+        speechSynthesisUtteranc.text = text;
+        speechSynthesisUtteranc.voice = voices.find(
           (voice) => voice.name === "Google US English"
         );
-        synth.speak(speech);
+        speechSynthesis.speak(speech);
+      }
+
+      function updateUIAfterStop() {
+        recordButton.disabled = false;
+        stopButton.disabled = true;
+        listenButton.disabled = false;
+      }
+
+      function updateUIAfterRecord() {
+        textInput.value = "";
+        stopButton.disabled = false;
+        listenButton.disabled = true;
+        recordButton.disabled = true;
       }
 
       function comparePhrases(userPhrase) {
-        if (!userPhrase) {
-          throw new Error("The input phrase is required.");
-        }
+        validatePhrase(userPhrase);
 
         const inputPhrase = normalizePhrase(userPhrase);
-        const referenceWords = phrase.innerHTML.split(" ");
+        const referenceWords = phraseOutput.innerHTML.split(" ");
         const inputWords = inputPhrase.split(" ");
 
         let score = 0;
         let errorWords = [];
+        let outputCorrection = "";
 
-        inputWords.forEach((element, index) => {
-          if (
-            referenceWords.includes(element) &&
-            referenceWords[index] === element
-          ) {
+        inputWords.forEach((word, index) => {
+          if (word === referenceWords[index]) {
             score++;
+            outputCorrection += word + " ";
+          } else if (!referenceWords.includes(word)) {
+            errorWords.push(word);
+            outputCorrection += `<span class="incorrect">${word}</span> `;
           } else {
-            if (element !== undefined && !referenceWords.includes(element))
-              errorWords.push(element);
+            outputCorrection += `<span class="incorrect">${word}</span> `;
           }
         });
+        misplacedWords.innerHTML = outputCorrection;
+
+        if (score && inputWords.length > referenceWords.length) {
+          score = score - (inputWords.length - referenceWords.length);
+          if (score <= 0) {
+            score = 0;
+          }
+        }
 
         errorWords = [...new Set(errorWords)];
 
@@ -206,38 +274,36 @@
       }
 
       function updateCorrection(inputPhrase, referencePhrase) {
-        const correction = document.getElementById("correction");
-        correction.innerHTML = "";
+        correctionWordsOutput.innerHTML = "";
 
         const referenceWords = referencePhrase.split(" ");
         const inputWords = inputPhrase.split(" ");
 
         referenceWords.forEach((referenceWord) => {
           let match = false;
-          for (let i = 0; i < inputWords.length; i++) {
-            if (referenceWord === inputWords[i]) {
+          inputWords.forEach((word, index) => {
+            if (referenceWord === inputWords[index]) {
               match = true;
-              inputWords[i] = "";
-              break;
+              inputWords[index] = "";
+              return;
             }
-          }
+          });
           if (match) {
-            correction.innerHTML += referenceWord + " ";
+            correctionWordsOutput.innerHTML += `<span class="correct">${referenceWord}</span> `;
           } else {
-            correction.innerHTML += `<span class="incorrect">${referenceWord}</span> `;
+            correctionWordsOutput.innerHTML += `<span class="incorrect">${referenceWord}</span> `;
           }
         });
       }
 
-      function stopRecording() {
-        recognition.abort();
-        updateUIAfterRecording();
-        result = comparePhrases(text.value);
-        const span = result.percentMatch;
-        percentage.innerHTML = `${span.toFixed(2)} %`;
-        error.innerHTML = result.errorWords.join(", ");
-        updateCorrection(text.value, phrase.innerHTML);
-      }
+      //Eventos
+      phraseInput.addEventListener("input", enableSaveButton);
+      saveButton.addEventListener("click", savePhrase);
+      speechRecognition.addEventListener("result", catchPhrase);
+      recordButton.addEventListener("click", startRecording);
+      stopButton.addEventListener("click", stopRecording);
+      listenButton.addEventListener("click", listenToText);
+      speechRecognition.addEventListener("end", reactiveRecord);
     </script>
   </body>
 </html>
