@@ -193,7 +193,7 @@
       function catchPhrase(event) {
         const latestResult = event.results[event.results.length - 1];
         const [{ transcript: phrase }] = latestResult;
-        textOutput.value += normalizePhrase(phrase);
+        textInput.value += normalizePhrase(phrase);
       }
 
       function startRecording() {
