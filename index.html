@@ -18,7 +18,7 @@
         background-size: cover;
       }
       .incorrect {
-        color: red;
+        color: #ff1a00;
         transition: all 0.3s ease-out;
       }
       .correct {
@@ -34,6 +34,25 @@
       h6 {
         text-align: center;
       }
+
+      #phraseOutput {
+        color: #000;
+        font-weight: bold;
+        font-size: xx-large;
+        box-shadow: 2px 0px #000;
+        display: inline-block;
+        animation: text-machine 1s ease-in-out infinite;
+      }
+
+      @keyframes text-machine {
+        0% {
+          box-shadow: 2px 0px #000;
+        }
+        100% {
+          box-shadow: 2px 0px #00000000;
+        }
+      }
+
       label {
         font-weight: 600;
       }
@@ -79,7 +98,7 @@
         </div>
       </div>
       <h2>Say the following sentence:</h2>
-      <h3 id="phraseOutput"></h3>
+      <h2 id="phraseOutput"></h2>
       <div class="buttons">
         <button id="recordButton">Record</button>
         <button id="stopButton">Stop</button>
@@ -141,7 +160,13 @@
 
       //Fucniones
       const normalizePhrase = (phrase) => {
-        return phrase.toLowerCase().replace(/[^a-z ]/g, "");
+        return (
+          phrase.charAt(0).toUpperCase() +
+          phrase
+            .toLowerCase()
+            .substr(1)
+            .replace(/[^a-z ]/g, "")
+        );
       };
 
       const validatePhrase = (userPhrase) => {
